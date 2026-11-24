@@ -4,9 +4,23 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project status
 
-Goal: an Arkanoid game in plain HTML, CSS and JavaScript with **zero dependencies** (no npm, bundler or framework). The game itself is **not implemented yet** — there is no `index.html`, no build step, no tests and no linter. Only assets and the spec-driven tooling exist so far. Don't invent build/test commands; open `index.html` directly in a browser (or any static server) once it exists.
+An Arkanoid game in plain HTML, CSS and JavaScript with **zero dependencies** (no npm, bundler or framework). Spec 01 (`specs/01-arkanoid-mvp.md`, status Finished) is implemented: a single playable level. There is no build step, no tests and no linter — don't invent such commands.
 
-The repo is not a git repository yet (`git init` is needed before the `/spec-impl` branch workflow can work).
+Run it by opening `index.html` in a browser, or serve the project root (the spritesheet and sound paths are relative to it): `python3 -m http.server`. There is no automated way to verify behavior; check changes by playing in a browser.
+
+Git: `main` is the main branch; spec work happens on `spec-NN-slug` branches.
+
+## Architecture
+
+Classic `<script>` tags, **no ES modules** — everything shares the global scope, so load order in `index.html` matters: `assets/spritesheet.js` → `src/config.js` → `src/input.js` → `src/audio.js` → `src/game.js` → `src/main.js`. A new file must be added to `index.html` in the right position.
+
+- `src/config.js` — `CONFIG` constants (canvas size, paddle/ball/block geometry and speed, lives, `ROW_COLORS` one per block row).
+- `src/input.js` — global `input` object (`left`, `right`, `mouseX`) and `initInput(canvas, onAction)`. Keyboard input clears `mouseX` so mouse and keys don't fight; Space/click both call `onAction`. Mouse X is rescaled from CSS pixels to logical canvas coordinates.
+- `src/audio.js` — `playSound("bounce" | "break")`, clones the `Audio` node per call so sounds can overlap.
+- `src/game.js` — single mutable `state` object (`phase`: `ready` | `playing` | `gameover`, lives, paddle, ball, blocks, explosions), `updateGame()` (per-frame logic, AABB collisions, life loss, level regeneration) and `drawGame(ctx)`. `handleAction()` is the Space/click handler and does different things per phase (launch ball / restart).
+- `src/main.js` — gets the canvas, wires `initInput(canvas, handleAction)`, and runs the `requestAnimationFrame` loop (`clearRect` → `updateGame` → `drawGame`) only after `loadSpritesheet` calls back.
+
+Gameplay is frame-based, not time-based: ball and paddle speeds in `CONFIG` are pixels **per frame**. Only explosion animations use `performance.now()`. Block hits destroy the block, spawn an entry in `state.explosions`, and reflect the ball on the axis of least overlap; only one block is processed per frame. Paddle bounce is pure reflection (no angle by hit position), per the spec's out-of-scope list.
 
 ## Assets (`assets/`)
 
