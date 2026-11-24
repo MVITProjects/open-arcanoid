@@ -1,0 +1,265 @@
+function createBlocks() {
+  const { rows, cols, w, h, gap, offsetX, offsetY } = CONFIG.BLOCKS;
+  const blocks = [];
+
+  for (let row = 0; row < rows; row++) {
+    const color = CONFIG.ROW_COLORS[row];
+    for (let col = 0; col < cols; col++) {
+      blocks.push({
+        x: offsetX + col * (w + gap),
+        y: offsetY + row * (h + gap),
+        w,
+        h,
+        color,
+        alive: true,
+      });
+    }
+  }
+
+  return blocks;
+}
+
+const paddleStartX = (CONFIG.WIDTH - CONFIG.PADDLE.w) / 2;
+
+const state = {
+  phase: "ready",
+  lives: CONFIG.LIVES,
+  paddle: {
+    x: paddleStartX,
+    y: CONFIG.PADDLE.y,
+    w: CONFIG.PADDLE.w,
+    h: CONFIG.PADDLE.h,
+  },
+  ball: {
+    x: paddleStartX + (CONFIG.PADDLE.w - CONFIG.BALL.size) / 2,
+    y: CONFIG.PADDLE.y - CONFIG.BALL.size,
+    dx: 0,
+    dy: 0,
+    size: CONFIG.BALL.size,
+  },
+  blocks: createBlocks(),
+  explosions: [],
+};
+
+function attachBallToPaddle() {
+  state.ball.x = state.paddle.x + (state.paddle.w - state.ball.size) / 2;
+  state.ball.y = state.paddle.y - state.ball.size;
+}
+
+function resetBallToPaddle() {
+  state.ball.dx = 0;
+  state.ball.dy = 0;
+  attachBallToPaddle();
+  state.phase = "ready";
+}
+
+function launchBall() {
+  // Angle offset from straight up within [-45°, +45°], avoiding near-horizontal paths
+  const offset = (Math.random() * 2 - 1) * (Math.PI / 4);
+  state.ball.dx = CONFIG.BALL.speed * Math.sin(offset);
+  state.ball.dy = -CONFIG.BALL.speed * Math.cos(offset);
+  state.phase = "playing";
+}
+
+function resetGame() {
+  state.lives = CONFIG.LIVES;
+  state.paddle.x = (CONFIG.WIDTH - CONFIG.PADDLE.w) / 2;
+  state.blocks = createBlocks();
+  state.explosions = [];
+  resetBallToPaddle();
+}
+
+function handleAction() {
+  if (state.phase === "ready") {
+    launchBall();
+  } else if (state.phase === "gameover") {
+    resetGame();
+  }
+}
+
+function updatePaddle() {
+  const { paddle } = state;
+
+  if (input.mouseX !== null) {
+    paddle.x = input.mouseX - paddle.w / 2;
+  } else {
+    if (input.left) paddle.x -= CONFIG.PADDLE.speed;
+    if (input.right) paddle.x += CONFIG.PADDLE.speed;
+  }
+
+  paddle.x = Math.max(0, Math.min(CONFIG.WIDTH - paddle.w, paddle.x));
+}
+
+function updateBall() {
+  const { ball, paddle } = state;
+
+  ball.x += ball.dx;
+  ball.y += ball.dy;
+
+  if (ball.x <= 0) {
+    ball.x = 0;
+    ball.dx = Math.abs(ball.dx);
+    playSound("bounce");
+  } else if (ball.x + ball.size >= CONFIG.WIDTH) {
+    ball.x = CONFIG.WIDTH - ball.size;
+    ball.dx = -Math.abs(ball.dx);
+    playSound("bounce");
+  }
+
+  if (ball.y <= 0) {
+    ball.y = 0;
+    ball.dy = Math.abs(ball.dy);
+    playSound("bounce");
+  }
+
+  if (
+    ball.dy > 0 &&
+    ball.x + ball.size >= paddle.x &&
+    ball.x <= paddle.x + paddle.w &&
+    ball.y + ball.size >= paddle.y &&
+    ball.y <= paddle.y + paddle.h
+  ) {
+    ball.y = paddle.y - ball.size;
+    ball.dy = -Math.abs(ball.dy);
+    playSound("bounce");
+  }
+
+  for (const block of state.blocks) {
+    if (!block.alive) continue;
+
+    if (
+      ball.x + ball.size > block.x &&
+      ball.x < block.x + block.w &&
+      ball.y + ball.size > block.y &&
+      ball.y < block.y + block.h
+    ) {
+      block.alive = false;
+      state.explosions.push({
+        x: block.x,
+        y: block.y,
+        w: block.w,
+        h: block.h,
+        color: block.color,
+        startTime: performance.now(),
+      });
+
+      const overlapLeft = ball.x + ball.size - block.x;
+      const overlapRight = block.x + block.w - ball.x;
+      const overlapTop = ball.y + ball.size - block.y;
+      const overlapBottom = block.y + block.h - ball.y;
+      const minOverlapX = Math.min(overlapLeft, overlapRight);
+      const minOverlapY = Math.min(overlapTop, overlapBottom);
+
+      if (minOverlapX < minOverlapY) {
+        ball.dx = -ball.dx;
+      } else {
+        ball.dy = -ball.dy;
+      }
+
+      playSound("break");
+      break;
+    }
+  }
+
+  if (ball.y > CONFIG.HEIGHT) {
+    state.lives -= 1;
+    if (state.lives <= 0) {
+      state.ball.dx = 0;
+      state.ball.dy = 0;
+      state.phase = "gameover";
+    } else {
+      resetBallToPaddle();
+    }
+  }
+}
+
+function updateExplosions(now) {
+  state.explosions = state.explosions.filter(
+    (exp) => now - exp.startTime < EXPLOSION_DURATION
+  );
+}
+
+function updateGame() {
+  if (state.phase !== "gameover") {
+    updatePaddle();
+  }
+
+  if (state.phase === "ready") {
+    attachBallToPaddle();
+  } else if (state.phase === "playing") {
+    updateBall();
+  }
+
+  updateExplosions(performance.now());
+
+  if (
+    state.phase === "playing" &&
+    state.explosions.length === 0 &&
+    state.blocks.every((block) => !block.alive)
+  ) {
+    state.blocks = createBlocks();
+    resetBallToPaddle();
+  }
+}
+
+function drawGame(ctx) {
+  for (const block of state.blocks) {
+    if (!block.alive) continue;
+    drawSprite(ctx, `block_${block.color}`, block.x, block.y, block.w, block.h);
+  }
+
+  const now = performance.now();
+  for (const exp of state.explosions) {
+    const frames = EXPLOSION_FRAMES[exp.color];
+    if (!frames) continue;
+    const elapsed = now - exp.startTime;
+    const frameIndex = Math.min(
+      frames.length - 1,
+      Math.floor((elapsed / EXPLOSION_DURATION) * frames.length)
+    );
+    if (frameIndex >= 0) {
+      drawFrame(ctx, frames[frameIndex], exp.x, exp.y, exp.w, exp.h);
+    }
+  }
+
+  drawSprite(
+    ctx,
+    "paddle",
+    state.paddle.x,
+    state.paddle.y,
+    state.paddle.w,
+    state.paddle.h
+  );
+
+  drawSprite(
+    ctx,
+    "ball",
+    state.ball.x,
+    state.ball.y,
+    state.ball.size,
+    state.ball.size
+  );
+
+  ctx.fillStyle = "#fff";
+  ctx.font = "20px monospace";
+  ctx.textAlign = "left";
+  ctx.textBaseline = "top";
+  ctx.fillText(`Lives: ${state.lives}`, 16, 16);
+
+  if (state.phase === "gameover") {
+    ctx.fillStyle = "rgba(0, 0, 0, 0.65)";
+    ctx.fillRect(0, 0, CONFIG.WIDTH, CONFIG.HEIGHT);
+
+    ctx.fillStyle = "#fff";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.font = "48px monospace";
+    ctx.fillText("Game Over", CONFIG.WIDTH / 2, CONFIG.HEIGHT / 2 - 24);
+    ctx.font = "20px monospace";
+    ctx.fillText(
+      "Press Space or click to restart",
+      CONFIG.WIDTH / 2,
+      CONFIG.HEIGHT / 2 + 24
+    );
+  }
+}
