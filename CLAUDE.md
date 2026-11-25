@@ -12,12 +12,13 @@ Git: `main` is the main branch; spec work happens on `spec-NN-slug` branches.
 
 ## Architecture
 
-Classic `<script>` tags, **no ES modules** — everything shares the global scope, so load order in `index.html` matters: `assets/spritesheet.js` → `src/config.js` → `src/input.js` → `src/audio.js` → `src/game.js` → `src/main.js`. A new file must be added to `index.html` in the right position.
+Classic `<script>` tags, **no ES modules** — everything shares the global scope, so load order in `index.html` matters: `assets/spritesheet.js` → `src/config.js` → `src/levels.js` → `src/input.js` → `src/audio.js` → `src/game.js` → `src/main.js`. A new file must be added to `index.html` in the right position.
 
-- `src/config.js` — `CONFIG` constants (canvas size, paddle/ball/block geometry and speed, lives, `ROW_COLORS` one per block row).
+- `src/config.js` — `CONFIG` constants (canvas size, paddle/ball/block geometry and speed, lives, paddle bounce tuning).
+- `src/levels.js` — `LEVEL_COLORS` legend and `LEVELS` array of 5 char-grid layouts (10 chars per row, `.` = empty cell).
 - `src/input.js` — global `input` object (`left`, `right`, `mouseX`) and `initInput(canvas, onAction)`. Keyboard input clears `mouseX` so mouse and keys don't fight; Space/click both call `onAction`. Mouse X is rescaled from CSS pixels to logical canvas coordinates.
 - `src/audio.js` — `playSound("bounce" | "break")`, clones the `Audio` node per call so sounds can overlap.
-- `src/game.js` — single mutable `state` object (`phase`: `ready` | `playing` | `gameover`, lives, paddle, ball, blocks, explosions), `updateGame()` (per-frame logic, AABB collisions, life loss, level regeneration) and `drawGame(ctx)`. `handleAction()` is the Space/click handler and does different things per phase (launch ball / restart).
+- `src/game.js` — single mutable `state` object (`phase`: `ready` | `playing` | `gameover` | `win`, `level`, lives, score, paddle, ball, blocks, explosions, `paddleHit`), `updateGame()` (per-frame logic, AABB collisions, life loss, level progression) and `drawGame(ctx)` (blocks, paddle/ball, HUD, ready banner, gameover/win overlays). `handleAction()` is the Space/click handler and does different things per phase (launch ball / restart).
 - `src/main.js` — gets the canvas, wires `initInput(canvas, handleAction)`, and runs the `requestAnimationFrame` loop (`clearRect` → `updateGame` → `drawGame`) only after `loadSpritesheet` calls back.
 
 Gameplay is frame-based, not time-based: ball and paddle speeds in `CONFIG` are pixels **per frame**. Only explosion animations use `performance.now()`. Block hits destroy the block, spawn an entry in `state.explosions`, and reflect the ball on the axis of least overlap; only one block is processed per frame. Paddle bounce is pure reflection (no angle by hit position), per the spec's out-of-scope list.
