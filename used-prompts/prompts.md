@@ -31,3 +31,14 @@ Queremos crear un MVP del juego de Arkanoid que se pueda jugar
 ### English version
 
 We want to create a playable MVP of the Arkanoid game
+
+## Third prompt
+
+### Spanish version
+
+En lugar de un número, quiero que se muestre una cantidad de sprites de la bola del juego en lugar de un número normal
+
+### English version
+
+Instead of a number, I want it to display a number of game ball sprites instead of a normal number
+

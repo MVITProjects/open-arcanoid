@@ -24,6 +24,7 @@ const paddleStartX = (CONFIG.WIDTH - CONFIG.PADDLE.w) / 2;
 const state = {
   phase: "ready",
   lives: CONFIG.LIVES,
+  score: 0,
   paddle: {
     x: paddleStartX,
     y: CONFIG.PADDLE.y,
@@ -63,6 +64,7 @@ function launchBall() {
 
 function resetGame() {
   state.lives = CONFIG.LIVES;
+  state.score = 0;
   state.paddle.x = (CONFIG.WIDTH - CONFIG.PADDLE.w) / 2;
   state.blocks = createBlocks();
   state.explosions = [];
@@ -134,6 +136,7 @@ function updateBall() {
       ball.y < block.y + block.h
     ) {
       block.alive = false;
+      state.score += CONFIG.BLOCK_POINTS;
       state.explosions.push({
         x: block.x,
         y: block.y,
@@ -244,7 +247,15 @@ function drawGame(ctx) {
   ctx.font = "20px monospace";
   ctx.textAlign = "left";
   ctx.textBaseline = "top";
-  ctx.fillText(`Lives: ${state.lives}`, 16, 16);
+  ctx.fillText("Lives:", 16, 16);
+  ctx.textAlign = "right";
+  ctx.fillText(`Score: ${state.score}`, CONFIG.WIDTH - 16, 16);
+  ctx.textAlign = "left";
+  const lifeSize = CONFIG.BALL.size;
+  const lifeX = 16 + ctx.measureText("Lives:").width + 10;
+  for (let i = 0; i < state.lives; i++) {
+    drawSprite(ctx, "ball", lifeX + i * (lifeSize + 6), 18, lifeSize, lifeSize);
+  }
 
   if (state.phase === "gameover") {
     ctx.fillStyle = "rgba(0, 0, 0, 0.65)";

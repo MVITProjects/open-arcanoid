@@ -12,6 +12,26 @@ body {
   justify-content: center;
 }
 
+#wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+#mute {
+  background: #222;
+  color: #fff;
+  border: 1px solid #444;
+  padding: 6px 12px;
+  font: 14px monospace;
+  cursor: pointer;
+}
+
+#mute:hover {
+  background: #333;
+}
+
 #game {
   display: block;
   background-color: #000;

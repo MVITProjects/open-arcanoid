@@ -1,5 +1,6 @@
 const CONFIG = {
   LIVES: 3,
+  BLOCK_POINTS: 10,
   WIDTH: 800,
   HEIGHT: 600,
   PADDLE: { w: 120, h: 14, y: 560, speed: 8 },
