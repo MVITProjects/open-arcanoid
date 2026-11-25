@@ -82,7 +82,7 @@ function resetGame() {
 function handleAction() {
   if (state.phase === "ready") {
     launchBall();
-  } else if (state.phase === "gameover") {
+  } else if (state.phase === "gameover" || state.phase === "win") {
     resetGame();
   }
 }
@@ -225,7 +225,7 @@ function updatePaddleHit(now) {
 }
 
 function updateGame() {
-  if (state.phase !== "gameover") {
+  if (state.phase !== "gameover" && state.phase !== "win") {
     updatePaddle();
   }
 
@@ -248,6 +248,11 @@ function updateGame() {
       state.level += 1;
       state.blocks = createBlocks(state.level);
       resetBallToPaddle();
+    } else {
+      state.ball.dx = 0;
+      state.ball.dy = 0;
+      state.paddleHit = null;
+      state.phase = "win";
     }
   }
 }
@@ -338,6 +343,23 @@ function drawGame(ctx) {
       "Press Space or click to restart",
       CONFIG.WIDTH / 2,
       CONFIG.HEIGHT / 2 + 24
+    );
+  } else if (state.phase === "win") {
+    ctx.fillStyle = "rgba(0, 0, 0, 0.65)";
+    ctx.fillRect(0, 0, CONFIG.WIDTH, CONFIG.HEIGHT);
+
+    ctx.fillStyle = "#fff";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.font = "48px monospace";
+    ctx.fillText("You Win!", CONFIG.WIDTH / 2, CONFIG.HEIGHT / 2 - 40);
+    ctx.font = "24px monospace";
+    ctx.fillText(`Score: ${state.score}`, CONFIG.WIDTH / 2, CONFIG.HEIGHT / 2 + 8);
+    ctx.font = "20px monospace";
+    ctx.fillText(
+      "Press Space or click to restart",
+      CONFIG.WIDTH / 2,
+      CONFIG.HEIGHT / 2 + 48
     );
   }
 }
