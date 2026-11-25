@@ -26,6 +26,7 @@ const paddleStartX = (CONFIG.WIDTH - CONFIG.PADDLE.w) / 2;
 
 const state = {
   phase: "ready",
+  pausedAt: null,
   level: 1,
   lives: CONFIG.LIVES,
   score: 0,
@@ -224,7 +225,36 @@ function updatePaddleHit(now) {
   }
 }
 
+function pauseGame() {
+  if (state.phase !== "playing") return;
+  state.phase = "paused";
+  state.pausedAt = performance.now();
+}
+
+function resumeGame() {
+  if (state.phase !== "paused") return;
+  const delta = performance.now() - state.pausedAt;
+  for (const exp of state.explosions) {
+    exp.startTime += delta;
+  }
+  if (state.paddleHit) {
+    state.paddleHit.startTime += delta;
+  }
+  state.pausedAt = null;
+  state.phase = "playing";
+}
+
+function togglePause() {
+  if (state.phase === "paused") {
+    resumeGame();
+  } else {
+    pauseGame();
+  }
+}
+
 function updateGame() {
+  if (state.phase === "paused") return;
+
   if (state.phase !== "gameover" && state.phase !== "win") {
     updatePaddle();
   }
