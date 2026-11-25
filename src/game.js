@@ -1,10 +1,13 @@
-function createBlocks() {
-  const { rows, cols, w, h, gap, offsetX, offsetY } = CONFIG.BLOCKS;
+function createBlocks(level) {
+  const { w, h, gap, offsetX, offsetY } = CONFIG.BLOCKS;
+  const layout = LEVELS[level - 1];
   const blocks = [];
 
-  for (let row = 0; row < rows; row++) {
-    const color = CONFIG.ROW_COLORS[row];
-    for (let col = 0; col < cols; col++) {
+  for (let row = 0; row < layout.length; row++) {
+    const rowStr = layout[row];
+    for (let col = 0; col < rowStr.length; col++) {
+      const color = LEVEL_COLORS[rowStr[col]];
+      if (!color) continue;
       blocks.push({
         x: offsetX + col * (w + gap),
         y: offsetY + row * (h + gap),
@@ -23,6 +26,7 @@ const paddleStartX = (CONFIG.WIDTH - CONFIG.PADDLE.w) / 2;
 
 const state = {
   phase: "ready",
+  level: 1,
   lives: CONFIG.LIVES,
   score: 0,
   paddle: {
@@ -38,7 +42,7 @@ const state = {
     dy: 0,
     size: CONFIG.BALL.size,
   },
-  blocks: createBlocks(),
+  blocks: createBlocks(1),
   explosions: [],
   paddleHit: null,
 };
@@ -65,10 +69,11 @@ function launchBall() {
 }
 
 function resetGame() {
+  state.level = 1;
   state.lives = CONFIG.LIVES;
   state.score = 0;
   state.paddle.x = (CONFIG.WIDTH - CONFIG.PADDLE.w) / 2;
-  state.blocks = createBlocks();
+  state.blocks = createBlocks(1);
   state.explosions = [];
   state.paddleHit = null;
   resetBallToPaddle();
@@ -239,7 +244,7 @@ function updateGame() {
     state.explosions.length === 0 &&
     state.blocks.every((block) => !block.alive)
   ) {
-    state.blocks = createBlocks();
+    state.blocks = createBlocks(state.level);
     resetBallToPaddle();
   }
 }
