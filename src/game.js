@@ -244,8 +244,11 @@ function updateGame() {
     state.explosions.length === 0 &&
     state.blocks.every((block) => !block.alive)
   ) {
-    state.blocks = createBlocks(state.level);
-    resetBallToPaddle();
+    if (state.level < LEVELS.length) {
+      state.level += 1;
+      state.blocks = createBlocks(state.level);
+      resetBallToPaddle();
+    }
   }
 }
 
