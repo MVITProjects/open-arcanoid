@@ -6,6 +6,11 @@ canvas.height = CONFIG.HEIGHT;
 
 initInput(canvas, handleAction, togglePause);
 
+window.addEventListener("blur", pauseGame);
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden) pauseGame();
+});
+
 function loop() {
   ctx.clearRect(0, 0, CONFIG.WIDTH, CONFIG.HEIGHT);
   updateGame();
