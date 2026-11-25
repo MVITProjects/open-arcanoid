@@ -42,3 +42,13 @@ En lugar de un número, quiero que se muestre una cantidad de sprites de la bola
 
 Instead of a number, I want it to display a number of game ball sprites instead of a normal number
 
+## Fourth prompt
+
+### Spanish version
+
+Necesito que actualices el Claude.md basado en la estructura y patrón del spec-driven design de nuestra aplicación
+
+### English version
+
+I need you to update Claude.md based on the structure and pattern of our application's spec-driven design
+

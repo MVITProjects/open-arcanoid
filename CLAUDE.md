@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project status
 
-An Arkanoid game in plain HTML, CSS and JavaScript with **zero dependencies** (no npm, bundler or framework). Spec 01 (`specs/01-arkanoid-mvp.md`, status Finished) is implemented: a single playable level. There is no build step, no tests and no linter — don't invent such commands.
+An Arkanoid game in plain HTML, CSS and JavaScript with **zero dependencies** (no npm, bundler or framework). Specs 01–04 in `specs/` are all implemented: playable MVP, angled paddle bounce with impact animation, 5 levels with a win screen, and pause (see the spec index below). There is no build step, no tests and no linter — don't invent such commands.
 
 Run it by opening `index.html` in a browser, or serve the project root (the spritesheet and sound paths are relative to it): `python3 -m http.server`. There is no automated way to verify behavior; check changes by playing in a browser.
 
@@ -21,7 +21,7 @@ Classic `<script>` tags, **no ES modules** — everything shares the global scop
 - `src/game.js` — single mutable `state` object (`phase`: `ready` | `playing` | `paused` | `gameover` | `win`, `pausedAt`, `level`, lives, score, paddle, ball, blocks, explosions, `paddleHit`), `pauseGame()` / `resumeGame()` / `togglePause()` (freezing and time-shifting animations across pauses), `updateGame()` (per-frame logic, AABB collisions, life loss, level progression; skipped while `paused`) and `drawGame(ctx)` (blocks, paddle/ball, HUD, ready banner, paused/gameover/win overlays; evaluates animations at `pausedAt` while `paused`). `handleAction()` is the Space/click handler and does different things per phase (launch ball / restart; ignored while `paused`).
 - `src/main.js` — gets the canvas, wires `initInput(canvas, handleAction, togglePause)`, registers `window` `blur` and `document` `visibilitychange` (`document.hidden`) to call `pauseGame()`, and runs the `requestAnimationFrame` loop (`clearRect` → `updateGame` → `drawGame`) only after `loadSpritesheet` calls back.
 
-Gameplay is frame-based, not time-based: ball and paddle speeds in `CONFIG` are pixels **per frame**. Only explosion animations use `performance.now()`. Block hits destroy the block, spawn an entry in `state.explosions`, and reflect the ball on the axis of least overlap; only one block is processed per frame. Paddle bounce is pure reflection (no angle by hit position), per the spec's out-of-scope list.
+Gameplay is frame-based, not time-based: ball and paddle speeds in `CONFIG` are pixels **per frame**. Only the explosion and paddle-hit animations use `performance.now()`. Block hits destroy the block, spawn an entry in `state.explosions`, and reflect the ball on the axis of least overlap; only one block is processed per frame. A top-surface paddle bounce exits at an angle set by the hit position (up to `CONFIG.PADDLE_BOUNCE.maxAngle` from vertical, constant speed) and triggers the `paddleHit` squash/flash animation; a side hit just flips `dx`.
 
 ## Assets (`assets/`)
 
@@ -35,11 +35,31 @@ Gameplay is frame-based, not time-based: ball and paddle speeds in `CONFIG` are 
 
 ## Spec-driven workflow
 
-Feature work is meant to go through the local skills in `.agents/skills/` (locked in `skills-lock.json`, sourced from `Klerith/fernando-skills`):
+Every feature goes through a spec in `specs/NN-slug.md` before any code. Use the local skills in `.agents/skills/` (locked in `skills-lock.json`, sourced from `Klerith/fernando-skills`):
 
 - `/spec <description>` — asks clarifying questions, then writes `specs/NN-slug.md` (status `Draft`) from `.agents/skills/spec/template.md`. It never writes code, and also seeds `specs/.spec-config.yml`.
-- `/spec-impl <NN-slug>` — only runs if the spec's status means "Approved" (the human flips it from Draft). Creates branch `spec-NN-slug`, implements one plan step at a time pausing for review, and only commits per step if `AutoCommitSteps: true` in `specs/.spec-config.yml`. Implement exactly what the spec says; spec changes go in the spec.
+- `/spec-impl <NN-slug>` — only runs if the spec's status means "Approved" (the human flips it from Draft). Creates branch `spec-NN-slug`, implements one plan step at a time pausing for review, and only commits per step if `AutoCommitSteps: true` in `specs/.spec-config.yml` (currently `false`, `AutoCreateBranch: true`; commits are then the user's call). Implement exactly what the spec says; spec changes go in the spec.
 
 Both skills are `disable-model-invocation` — only the user starts them. Reply in the language of the user's prompt (the author writes in both Spanish and English).
+
+### Spec lifecycle
+
+`Draft` → `In review` → `Approved` (set by the human) → `Implemented` → optionally `Obsolete`. After the last plan step, verify the acceptance criteria and mark them `[x]`, then set the status to `Implemented`. Spec 01 uses `Finished`, a legacy label for the same thing; use `Implemented` for new specs.
+
+### Spec structure
+
+Header blockquote (`Status`, `Depends on`, `Date`, `Objective` in one sentence), then in order: `Scope` (**In** / **Out of scope**, both mandatory), `Data model` (real code snippets), `Implementation plan` (numbered steps, each runnable on its own, ≤ ~30–50 lines, with a manual test; the last step is a final pass that also updates `CLAUDE.md`), `Acceptance criteria` (yes/no checkboxes), `Decisions` (**Yes:**/**No:** with a reason), optional `Risks` table, and a closing `What is **not** in this spec`. Specs use concrete names (file paths, exact strings), no TODOs and no long code.
+
+### Spec index
+
+- `01-arkanoid-mvp.md` — playable single level, lives, score, sound with mute toggle, explosions, game over.
+- `02-paddle-bounce-feel.md` — position-dependent bounce angle, side collisions, paddle squash/flash, ball squash. Depends on 01.
+- `03-levels.md` — `src/levels.js`, 5 layouts, `state.level`, level banner/HUD, win screen. Depends on 01, 02.
+- `04-pause.md` — `paused` phase, P/Esc, auto-pause on blur/hidden tab, frozen animations. Depends on 01–03.
+
+### Conventions
+
+- Branch per spec: `spec-NN-slug`; commit messages in conventional style (`feat:`, `chore:`), one per plan step, e.g. `feat: add pause state and update logic`; spec-status flips are `chore:` commits.
+- When a spec changes behavior or files, its final plan step updates the Architecture section of this file.
 
 `.claude/skills/cat-mode` is an unrelated local skill (respond like a cat). `prompts.md` and `used-prompts/prompts.md` log prompts used in the project.
