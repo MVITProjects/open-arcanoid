@@ -123,18 +123,30 @@ function updateBall() {
   }
 
   if (
-    ball.dy > 0 &&
     ball.x + ball.size >= paddle.x &&
     ball.x <= paddle.x + paddle.w &&
     ball.y + ball.size >= paddle.y &&
     ball.y <= paddle.y + paddle.h
   ) {
     const ballCenterX = ball.x + ball.size / 2;
+    const ballCenterY = ball.y + ball.size / 2;
     const paddleCenterX = paddle.x + paddle.w / 2;
-    const hit = (ballCenterX - paddleCenterX) / (paddle.w / 2);
-    ball.y = paddle.y - ball.size;
-    bounceOffPaddle(hit);
-    playSound("bounce");
+
+    if (ballCenterY > paddle.y) {
+      if (ballCenterX < paddleCenterX) {
+        ball.x = paddle.x - ball.size;
+        ball.dx = -Math.abs(ball.dx);
+      } else {
+        ball.x = paddle.x + paddle.w;
+        ball.dx = Math.abs(ball.dx);
+      }
+      playSound("bounce");
+    } else if (ball.dy > 0) {
+      const hit = (ballCenterX - paddleCenterX) / (paddle.w / 2);
+      ball.y = paddle.y - ball.size;
+      bounceOffPaddle(hit);
+      playSound("bounce");
+    }
   }
 
   for (const block of state.blocks) {
