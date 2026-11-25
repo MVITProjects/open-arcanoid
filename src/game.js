@@ -320,6 +320,8 @@ function drawGame(ctx) {
   ctx.textAlign = "left";
   ctx.textBaseline = "top";
   ctx.fillText("Lives:", 16, 16);
+  ctx.textAlign = "center";
+  ctx.fillText(`Level ${state.level}`, CONFIG.WIDTH / 2, 16);
   ctx.textAlign = "right";
   ctx.fillText(`Score: ${state.score}`, CONFIG.WIDTH - 16, 16);
   ctx.textAlign = "left";
@@ -329,7 +331,15 @@ function drawGame(ctx) {
     drawSprite(ctx, "ball", lifeX + i * (lifeSize + 6), 18, lifeSize, lifeSize);
   }
 
-  if (state.phase === "gameover") {
+  if (state.phase === "ready") {
+    ctx.fillStyle = "#fff";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.font = "36px monospace";
+    ctx.fillText(`Level ${state.level}`, CONFIG.WIDTH / 2, 390);
+    ctx.font = "20px monospace";
+    ctx.fillText("Press Space or click to launch", CONFIG.WIDTH / 2, 434);
+  } else if (state.phase === "gameover") {
     ctx.fillStyle = "rgba(0, 0, 0, 0.65)";
     ctx.fillRect(0, 0, CONFIG.WIDTH, CONFIG.HEIGHT);
 
