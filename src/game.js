@@ -40,6 +40,7 @@ const state = {
   },
   blocks: createBlocks(),
   explosions: [],
+  paddleHit: null,
 };
 
 function attachBallToPaddle() {
@@ -50,6 +51,7 @@ function attachBallToPaddle() {
 function resetBallToPaddle() {
   state.ball.dx = 0;
   state.ball.dy = 0;
+  state.paddleHit = null;
   attachBallToPaddle();
   state.phase = "ready";
 }
@@ -68,6 +70,7 @@ function resetGame() {
   state.paddle.x = (CONFIG.WIDTH - CONFIG.PADDLE.w) / 2;
   state.blocks = createBlocks();
   state.explosions = [];
+  state.paddleHit = null;
   resetBallToPaddle();
 }
 
@@ -145,6 +148,7 @@ function updateBall() {
       const hit = (ballCenterX - paddleCenterX) / (paddle.w / 2);
       ball.y = paddle.y - ball.size;
       bounceOffPaddle(hit);
+      state.paddleHit = { startTime: performance.now() };
       playSound("bounce");
     }
   }
@@ -192,6 +196,7 @@ function updateBall() {
     if (state.lives <= 0) {
       state.ball.dx = 0;
       state.ball.dy = 0;
+      state.paddleHit = null;
       state.phase = "gameover";
     } else {
       resetBallToPaddle();
@@ -205,6 +210,15 @@ function updateExplosions(now) {
   );
 }
 
+function updatePaddleHit(now) {
+  if (
+    state.paddleHit &&
+    now - state.paddleHit.startTime >= CONFIG.PADDLE_BOUNCE.duration
+  ) {
+    state.paddleHit = null;
+  }
+}
+
 function updateGame() {
   if (state.phase !== "gameover") {
     updatePaddle();
@@ -216,7 +230,9 @@ function updateGame() {
     updateBall();
   }
 
-  updateExplosions(performance.now());
+  const now = performance.now();
+  updateExplosions(now);
+  updatePaddleHit(now);
 
   if (
     state.phase === "playing" &&
