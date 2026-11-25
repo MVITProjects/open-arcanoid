@@ -1,6 +1,6 @@
 # SPEC 04 — Pause
 
-> **Status:** Approved
+> **Status:** Implemented
 > **Depends on:** SPEC 01, SPEC 02, SPEC 03
 > **Date:** 2026-11-25
 > **Objective:** Let the player pause and resume a game in progress with P or Esc (and automatically when the window loses focus), freezing the ball, paddle and animations behind a "Paused" overlay.
@@ -84,21 +84,21 @@ Conventions:
 
 ## Acceptance criteria
 
-- [ ] Pressing P during `playing` shows the "Paused" overlay and stops the ball, the paddle and all animations.
-- [ ] Pressing Esc during `playing` does the same.
-- [ ] Pressing P or Esc during `paused` resumes the game and the ball continues with the same direction and speed.
-- [ ] Holding P or Esc (key auto-repeat) toggles pause only once.
-- [ ] P and Esc do nothing in `ready`, `gameover` and `win`.
-- [ ] While paused, moving the mouse or pressing movement keys does not move the paddle.
-- [ ] While paused, Space and click do not resume the game.
-- [ ] An explosion or paddle-hit animation in progress when pausing is neither skipped nor finished during the pause; after resuming it plays the remaining time.
-- [ ] The paused overlay uses the same dim (`rgba(0, 0, 0, 0.65)`) as game over / win and shows the texts "Paused" and "Press P or Esc to resume".
-- [ ] The level is not completed and no life is lost while paused.
-- [ ] Switching to another tab or window during `playing` pauses the game, and coming back does not resume it.
-- [ ] Losing focus during `ready`, `gameover` or `win` does not change the phase.
-- [ ] A movement key released while paused is not seen as held after resuming.
-- [ ] Restarting after game over or win starts a game that is not paused (`pausedAt === null`).
-- [ ] The project still has no dependencies, build step or new assets.
+- [x] Pressing P during `playing` shows the "Paused" overlay and stops the ball, the paddle and all animations.
+- [x] Pressing Esc during `playing` does the same.
+- [x] Pressing P or Esc during `paused` resumes the game and the ball continues with the same direction and speed.
+- [x] Holding P or Esc (key auto-repeat) toggles pause only once.
+- [x] P and Esc do nothing in `ready`, `gameover` and `win`.
+- [x] While paused, moving the mouse or pressing movement keys does not move the paddle.
+- [x] While paused, Space and click do not resume the game.
+- [x] An explosion or paddle-hit animation in progress when pausing is neither skipped nor finished during the pause; after resuming it plays the remaining time.
+- [x] The paused overlay uses the same dim (`rgba(0, 0, 0, 0.65)`) as game over / win and shows the texts "Paused" and "Press P or Esc to resume".
+- [x] The level is not completed and no life is lost while paused.
+- [x] Switching to another tab or window during `playing` pauses the game, and coming back does not resume it.
+- [x] Losing focus during `ready`, `gameover` or `win` does not change the phase.
+- [x] A movement key released while paused is not seen as held after resuming.
+- [x] Restarting after game over or win starts a game that is not paused (`pausedAt === null`).
+- [x] The project still has no dependencies, build step or new assets.
 
 ## Decisions
 
