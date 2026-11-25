@@ -285,14 +285,22 @@ function drawGame(ctx) {
 
   drawSprite(ctx, "paddle", paddleDrawX, paddleDrawY, paddleDrawW, paddleDrawH);
 
-  drawSprite(
-    ctx,
-    "ball",
-    state.ball.x,
-    state.ball.y,
-    state.ball.size,
-    state.ball.size
-  );
+  if (impact > 0) {
+    ctx.save();
+    ctx.globalAlpha = CONFIG.PADDLE_BOUNCE.flashAlpha * impact;
+    ctx.fillStyle = "#fff";
+    ctx.fillRect(paddleDrawX, paddleDrawY, paddleDrawW, paddleDrawH);
+    ctx.restore();
+  }
+
+  const ballScaleX = 1 + (CONFIG.PADDLE_BOUNCE.ballStretchX - 1) * impact;
+  const ballScaleY = 1 + (CONFIG.PADDLE_BOUNCE.ballSquashY - 1) * impact;
+  const ballDrawW = state.ball.size * ballScaleX;
+  const ballDrawH = state.ball.size * ballScaleY;
+  const ballDrawX = state.ball.x - (ballDrawW - state.ball.size) / 2;
+  const ballDrawY = state.ball.y - (ballDrawH - state.ball.size) / 2;
+
+  drawSprite(ctx, "ball", ballDrawX, ballDrawY, ballDrawW, ballDrawH);
 
   ctx.fillStyle = "#fff";
   ctx.font = "20px monospace";
