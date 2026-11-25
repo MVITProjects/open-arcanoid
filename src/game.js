@@ -92,6 +92,14 @@ function updatePaddle() {
   paddle.x = Math.max(0, Math.min(CONFIG.WIDTH - paddle.w, paddle.x));
 }
 
+function bounceOffPaddle(hit) {
+  const clamped = Math.max(-1, Math.min(1, hit));
+  const maxRad = (CONFIG.PADDLE_BOUNCE.maxAngle * Math.PI) / 180;
+  const angle = clamped * maxRad;
+  state.ball.dx = CONFIG.BALL.speed * Math.sin(angle);
+  state.ball.dy = -CONFIG.BALL.speed * Math.cos(angle);
+}
+
 function updateBall() {
   const { ball, paddle } = state;
 
@@ -121,8 +129,11 @@ function updateBall() {
     ball.y + ball.size >= paddle.y &&
     ball.y <= paddle.y + paddle.h
   ) {
+    const ballCenterX = ball.x + ball.size / 2;
+    const paddleCenterX = paddle.x + paddle.w / 2;
+    const hit = (ballCenterX - paddleCenterX) / (paddle.w / 2);
     ball.y = paddle.y - ball.size;
-    ball.dy = -Math.abs(ball.dy);
+    bounceOffPaddle(hit);
     playSound("bounce");
   }
 
