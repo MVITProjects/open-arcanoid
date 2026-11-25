@@ -4,7 +4,7 @@ const input = {
   mouseX: null,
 };
 
-function initInput(canvas, onAction) {
+function initInput(canvas, onAction, onTogglePause) {
   window.addEventListener("keydown", (e) => {
     if (e.key === "ArrowLeft" || e.key === "a" || e.key === "A") {
       input.left = true;
@@ -15,6 +15,8 @@ function initInput(canvas, onAction) {
     } else if (e.code === "Space" || e.key === " ") {
       e.preventDefault();
       if (onAction) onAction();
+    } else if (e.key === "p" || e.key === "P" || e.key === "Escape") {
+      if (!e.repeat && onTogglePause) onTogglePause();
     }
   });
 
