@@ -52,3 +52,13 @@ Necesito que actualices el Claude.md basado en la estructura y patrón del spec-
 
 I need you to update Claude.md based on the structure and pattern of our application's spec-driven design
 
+## Fifth prompt
+
+### Spanish version
+
+También necesito que actualices el readme.md con la información que tienes actual del proyecto
+
+### English version
+
+I also need you to update readme.md with the current information you have about the project
+
