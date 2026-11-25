@@ -77,6 +77,7 @@ function resetGame() {
   state.blocks = createBlocks(1);
   state.explosions = [];
   state.paddleHit = null;
+  state.pausedAt = null;
   resetBallToPaddle();
 }
 
