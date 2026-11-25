@@ -293,7 +293,7 @@ function drawGame(ctx) {
     drawSprite(ctx, `block_${block.color}`, block.x, block.y, block.w, block.h);
   }
 
-  const now = performance.now();
+  const now = state.phase === "paused" ? state.pausedAt : performance.now();
   for (const exp of state.explosions) {
     const frames = EXPLOSION_FRAMES[exp.color];
     if (!frames) continue;
@@ -369,6 +369,21 @@ function drawGame(ctx) {
     ctx.fillText(`Level ${state.level}`, CONFIG.WIDTH / 2, 390);
     ctx.font = "20px monospace";
     ctx.fillText("Press Space or click to launch", CONFIG.WIDTH / 2, 434);
+  } else if (state.phase === "paused") {
+    ctx.fillStyle = "rgba(0, 0, 0, 0.65)";
+    ctx.fillRect(0, 0, CONFIG.WIDTH, CONFIG.HEIGHT);
+
+    ctx.fillStyle = "#fff";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.font = "48px monospace";
+    ctx.fillText("Paused", CONFIG.WIDTH / 2, CONFIG.HEIGHT / 2 - 24);
+    ctx.font = "20px monospace";
+    ctx.fillText(
+      "Press P or Esc to resume",
+      CONFIG.WIDTH / 2,
+      CONFIG.HEIGHT / 2 + 24
+    );
   } else if (state.phase === "gameover") {
     ctx.fillStyle = "rgba(0, 0, 0, 0.65)";
     ctx.fillRect(0, 0, CONFIG.WIDTH, CONFIG.HEIGHT);
