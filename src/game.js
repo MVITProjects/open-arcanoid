@@ -264,14 +264,26 @@ function drawGame(ctx) {
     }
   }
 
-  drawSprite(
-    ctx,
-    "paddle",
-    state.paddle.x,
-    state.paddle.y,
-    state.paddle.w,
-    state.paddle.h
-  );
+  let impact = 0;
+  if (state.paddleHit) {
+    const t = Math.max(
+      0,
+      Math.min(
+        1,
+        (now - state.paddleHit.startTime) / CONFIG.PADDLE_BOUNCE.duration
+      )
+    );
+    impact = 1 - t;
+  }
+
+  const paddleScaleX = 1 + (CONFIG.PADDLE_BOUNCE.stretchX - 1) * impact;
+  const paddleScaleY = 1 + (CONFIG.PADDLE_BOUNCE.squashY - 1) * impact;
+  const paddleDrawW = state.paddle.w * paddleScaleX;
+  const paddleDrawH = state.paddle.h * paddleScaleY;
+  const paddleDrawX = state.paddle.x - (paddleDrawW - state.paddle.w) / 2;
+  const paddleDrawY = state.paddle.y + (state.paddle.h - paddleDrawH);
+
+  drawSprite(ctx, "paddle", paddleDrawX, paddleDrawY, paddleDrawW, paddleDrawH);
 
   drawSprite(
     ctx,
